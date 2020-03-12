@@ -1,0 +1,18 @@
+[
+  {
+    "id": "Excellent",
+    "name": "Excellent"
+  },
+  {
+    "id": "Good",
+    "name": "Good"
+  },
+  {
+    "id": "Average",
+    "name": "Average"
+  },
+  {
+    "id": "Poor",
+    "name": "Poor"
+  }
+]
