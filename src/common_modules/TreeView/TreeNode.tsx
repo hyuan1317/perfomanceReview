@@ -1,5 +1,7 @@
 import React, { useState, useContext } from 'react';
 import TreeViewContext from './TreeViewContext';
+import Add from '@material-ui/icons/Add';
+import Remove from '@material-ui/icons/Remove';
 import styled from 'styled-components';
 
 interface Props {
@@ -7,13 +9,13 @@ interface Props {
     children?: any;
     onClick?: () => void;
 
-    paddingLeft: number;
+    paddingLeft?: number;
 }
 
 interface TreeNodeStyleProps {
     paddingLeft: number;
 }
-const TreeNodeStyle = styled.div`
+const TreeNodeStyle = styled.div<TreeNodeStyleProps>`
     display: flex;
     align-items: center;
     height: 28px;
@@ -23,7 +25,7 @@ const TreeNodeStyle = styled.div`
     &:hover {
         background-color: rgba(115, 166, 63, 0.1);
     }
-    padding-left: ${(props: TreeNodeStyleProps) => props.paddingLeft}px;
+    padding-left: ${(props) => props.paddingLeft}px;
     padding-right: .5rem;
 `;
 const NodeName = styled.div`
@@ -55,12 +57,12 @@ function TreeNode(props: Props) {
     const { collapseIcon, expandIcon } = useContext(TreeViewContext);
     const defaultCollapseIcon = (
         <DefaultIconContainer onClick={() => handleOnToggle()}>
-            <i className="icon-expand_4" />
+            <Add />
         </DefaultIconContainer>
     );
     const defaultExpandIcon = (
         <DefaultIconContainer onClick={() => handleOnToggle()}>
-            <i className="icon-collapse_4" />
+            <Remove />
         </DefaultIconContainer>
     );
     function generateToggleIcon() {
@@ -79,7 +81,7 @@ function TreeNode(props: Props) {
     }
     return (
         <>
-            <TreeNodeStyle paddingLeft={props.paddingLeft} title={props.displayName}>
+            <TreeNodeStyle paddingLeft={props.paddingLeft | 0} title={props.displayName}>
                 {
                     generateToggleIcon()
                 }

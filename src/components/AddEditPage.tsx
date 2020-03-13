@@ -1,13 +1,16 @@
-import React, { useState, FC, MouseEvent  } from 'react';
+import React, { useState, FC, ChangeEvent  } from 'react';
 import styled from 'styled-components';
-import { IEvent } from './ReviewList';
+import { IEvent, IFormatUserList } from './ReviewList';
 import Dropdown, { DropdownBox, DropdownWindow } from '../common_modules/Dropdown/Dropdown';
-import { TreeView, TreeNode } from '../common_modules/TreeView';
 import Button from '@material-ui/core/Button';
+import reviewService from '../services/reviewService';
+import UserListTree from './UserListTree';
 
 interface Props {
+  userList: IFormatUserList[];
   event: IEvent;
   onClose: () => void;
+  refreshPage: () => void;
 }
 const MaskBackground = styled.div`
   position: absolute;
@@ -51,12 +54,12 @@ const Title = styled.div`
   font-size: 16px;
   line-height: 1.5;
 `;
-const Textarea = styled.textarea`
+const Textarea = styled.textarea<{ error: boolean }>`
   width: 100%;
   height: 50px;
   padding: 0.5rem;
   border-radius: 4px;
-  border: 1px solid #222222;
+  border: 1px solid ${(props) => props.error ? 'var(--danger)' : '#222222'};
 
   background-color: white;
 `;
@@ -74,15 +77,21 @@ interface UserItem {
   user: string;
   team: string;
 }
+interface IError {
+  tuser: boolean;
+  feedback: boolean;
+};
 
 const AddEditPage: FC<Props> = (props) => {
   const {
     event: {
-      name,
+      name: eventName,
       userInfo,
-    }
+    },
+    userList,
   } = props;
   const [localUserInfo, setLocalUserInfo] = useState<IEvent['userInfo']>(userInfo);
+  const [errors, setErrors] = useState<IError>({ tuser: false, feedback: false });
 
   function handleUserSelect(item: UserItem) {
     setLocalUserInfo({
@@ -90,6 +99,7 @@ const AddEditPage: FC<Props> = (props) => {
       tuser: item.user,
       team: item.team,
     });
+    validate();
   }
   function handleContribution(item: IItem) {
     setLocalUserInfo({
@@ -109,11 +119,45 @@ const AddEditPage: FC<Props> = (props) => {
       potential: item.name,
     });
   }
-  function handleOnFeedbackChange(e: MouseEvent) {
+  function handleOnFeedbackChange(e: ChangeEvent<HTMLTextAreaElement>) {
     setLocalUserInfo({
       ...localUserInfo,
       feedback: e.target.value,
     });
+  }
+  function handleSubimit() {
+    switch (eventName) {
+      case 'Edit':
+        if (validate()) {
+          reviewService.updateUserReview(localUserInfo)
+            .then(responsedata => {
+              props.onClose();
+              props.refreshPage();
+            })
+            .catch(err => console.log(err));
+        }
+        break;
+      case 'Add':
+        if (validate()) {
+          reviewService.addUserReview(localUserInfo)
+            .then(responsedata => {
+              props.onClose();
+              props.refreshPage();
+            })
+            .catch(err => console.log(err));
+        }
+        break;
+      default:
+    }
+  }
+  function validate(): boolean {
+    const { tuser, team, contribution, commitment, potential, feedback } = localUserInfo;
+    const newErrors: IError = { tuser: false, feedback: false };
+    newErrors.tuser = !tuser;
+    newErrors.feedback = !feedback.trim();
+    const isValid = Object.values(newErrors).every(attr => !attr); // every attribut is false: no error
+    setErrors(newErrors);
+    return isValid;
   }
   return (
     <MaskBackground>
@@ -121,36 +165,53 @@ const AddEditPage: FC<Props> = (props) => {
         <DropdownRow>
           <DropdownBlock>
             <Title>Target User</Title>
-            <Dropdown data={optionList} onSelect={handleUserSelect}>
+            <Dropdown 
+              size="lg" 
+              data={optionList} 
+              error={errors.tuser}
+              onSelect={handleUserSelect}
+            >
               <DropdownBox title={localUserInfo.tuser} theme="plain" />
-              <DropdownWindow />
+              <DropdownWindow>
+                {
+                  ({ closeWindow }) => (
+                    <UserListTree userList={userList} onSelect={handleUserSelect} closeWindow={closeWindow} />
+                  )
+                }
+              </DropdownWindow>
             </Dropdown>
           </DropdownBlock>
           <DropdownBlock>
             <Title>Contribution</Title>
-            <Dropdown data={optionList} onSelect={handleContribution}>
+            <Dropdown size="lg" data={optionList} onSelect={handleContribution}>
               <DropdownBox title={localUserInfo.contribution} theme="plain" />
               <DropdownWindow />
             </Dropdown>
           </DropdownBlock>
           <DropdownBlock>
             <Title>Commitment</Title>
-            <Dropdown data={optionList} onSelect={handleCommitment}>
+            <Dropdown size="lg" data={optionList} onSelect={handleCommitment}>
               <DropdownBox title={localUserInfo.commitment} theme="plain" />
               <DropdownWindow />
             </Dropdown>
           </DropdownBlock>
           <DropdownBlock>
             <Title>Potential</Title>
-            <Dropdown data={optionList} onSelect={handlePotential}>
+            <Dropdown size="lg" data={optionList} onSelect={handlePotential}>
               <DropdownBox title={localUserInfo.potential} theme="plain" />
               <DropdownWindow />
             </Dropdown>
           </DropdownBlock>
         </DropdownRow>
-        <Textarea placeholder="Please enter your feedback to this member here" onChange={handleOnFeedbackChange}/>
+        <Textarea 
+          placeholder="Please enter your feedback to this member here" 
+          onChange={handleOnFeedbackChange}
+          value={localUserInfo.feedback}
+          error={errors.feedback}
+          onBlur={validate}
+        />
         <ButtonContainer>
-          <Button variant="contained" color="primary">
+          <Button variant="contained" color="primary" onClick={handleSubimit}>
             Submit
           </Button>
           <Button variant="contained" style={{ marginLeft: '2rem' }} onClick={props.onClose}>

@@ -4,7 +4,8 @@ import reset from 'styled-reset';
 import ReviewList from './components/ReviewList';
 
 const GlobalStyle = createGlobalStyle`
-  ${reset}
+  // ${reset}
+
   :root {
         /* size */
         --min-width: 10vw;
@@ -27,7 +28,7 @@ const GlobalStyle = createGlobalStyle`
         --success: hsl(var(--success-hsl));
         --success-lighter: hsl(var(--success-hsl-h), var(--success-hsl-s), calc(var(--success-hsl-l) + 5%));
         --success-darker: hsl(var(--success-hsl-h), var(--success-hsl-s), calc(var(--success-hsl-l) - 5%));
-        --danger: hsl(var(--danger-hsl));
+        --danger: red;
         --danger-lighter: hsl(var(--danger-hsl-h), var(--danger-hsl-s), calc(var(--danger-hsl-l) + 5%));
         --danger-darker: hsl(var(--danger-hsl-h), var(--danger-hsl-s), calc(var(--danger-hsl-l) - 5%));
         --themeColor-hsl-h: 211;

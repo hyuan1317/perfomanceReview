@@ -2,6 +2,7 @@ import React, { useContext } from 'react';
 import DropdownContext from './DropdownContext';
 import styled from 'styled-components';
 import Button from '../Button';
+import ArrowDropdown from '@material-ui/icons/ArrowDropDown';
 
 interface Props {
     title?: string | number;
@@ -38,16 +39,13 @@ export default function (props: Props) {
         return input === undefined || input === null || input === '';
     }
     function defaultDropdownBox() {
-        const iconName = props.iconClass ? props.iconClass :
-            direction === 'horizontal' ? 'icon-arrow_right'
-            : direction === 'vertical' ? 'icon-arrow_down' : '';
         return (
             <DropdownBox theme={props.theme || theme} size={size} error={error} disabled={disabled}>
                 {
                     !props.iconOnly &&
                     <span>{checkIsEmpty(props.title) ? 'Please Select...' : props.title}</span>
                 }
-                <i className={iconName} />
+                <ArrowDropdown/>
             </DropdownBox>
         );
     }

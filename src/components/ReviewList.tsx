@@ -1,6 +1,6 @@
 import React, { useState, useEffect, FC, forwardRef } from 'react';
 import styled from 'styled-components';
-import { IUserInfo, getHistoryReview, getFakeHistoryReview } from '../services/historyReview';
+import reviewService, { IUserInfo, IUserList } from '../services/reviewService';
 import MaterialTable, { MTableToolbar } from 'material-table';
 import DeleteForever from '@material-ui/icons/DeleteForever';
 import Edit from '@material-ui/icons/Edit';
@@ -20,6 +20,7 @@ import Search from '@material-ui/icons/Search';
 import ViewColumn from '@material-ui/icons/ViewColumn';
 import Button from '@material-ui/core/Button';
 import AddEditPage from './AddEditPage';
+import './ReviewList.css';
 
 const tableIcons = {
   Add: forwardRef<SVGSVGElement>((props, ref) => <AddBox {...props} ref={ref} />),
@@ -45,6 +46,15 @@ export interface IEvent {
   name: 'Edit' | 'Add' | '';
   userInfo: IUserInfo;
 }
+export interface IFormatUserList {
+  team: string;
+  children: IUser[];
+}
+
+interface IUser {
+  user: string;
+  team: string;
+}
 
 const Wrapper = styled.div`
   padding: 10% 5%;
@@ -61,8 +71,8 @@ const TableColumns = [
 ];
 
 const AddIconContainer = styled.div`
-  text-align: right;
-  padding-right: 2rem;
+  text-align: left;
+  padding-left: 2rem;
   margin-bottom: 1rem;
 `;
 
@@ -76,7 +86,19 @@ const defaultUserInfo = {
   updateTime: '',
 }
 
+const parseUserList = (userList: IUserList): IFormatUserList[] => {
+  const result: IFormatUserList[] = [];
+  Object.keys(userList).forEach(team => {
+    result.push({
+      team,
+      children: userList[team].map(user => ({ user, team }))
+    });
+  });
+  return result;
+}
+
 const ReviewList: FC = () => {
+  const [userList, setUserList] = useState<IFormatUserList[]>([]);
   const [historyReview, setHistoryReview] = useState<IUserInfo[]>([]);
   const [showAddEditPage, setShowAddEditPage] = useState<boolean>(false);
   const [event, setEvent] = useState<IEvent>({
@@ -96,9 +118,15 @@ const ReviewList: FC = () => {
   useEffect(() => {
     updateHistoryReview();
   }, []);
+  useEffect(() => {
+    reviewService.getFakeUserList()
+      .then(responseData => {
+        setUserList(parseUserList(responseData));
+      });
+  }, []);
 
   function updateHistoryReview() {
-    getFakeHistoryReview()
+    reviewService.getFakeHistoryReview()
       .then(setHistoryReview);
   }
 
@@ -106,9 +134,10 @@ const ReviewList: FC = () => {
     // todo
   }
   function handleEditUserReview(rowData: any) {
+    const { tableData, updateTime, ...userInfo } = rowData;
     setEvent({
       name: 'Edit',
-      userInfo: rowData,
+      userInfo,
     });
     setShowAddEditPage(true);
   }
@@ -165,7 +194,12 @@ const ReviewList: FC = () => {
       />
       {
         showAddEditPage &&
-        <AddEditPage event={event} onClose={handleCloseAddEditPage} />
+        <AddEditPage 
+          userList={userList}
+          event={event} 
+          onClose={handleCloseAddEditPage} 
+          refreshPage={updateHistoryReview} 
+        />
       }
     </Wrapper>
   );

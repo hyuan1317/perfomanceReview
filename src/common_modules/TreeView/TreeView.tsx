@@ -17,7 +17,7 @@ export default function (props: Props) {
         >
             {
                 React.Children.map(props.children, (child) => {
-                    return React.cloneElement(child, { paddingLeft: 8 });
+                    return React.cloneElement(child);
                 })
             }
         </TreeViewContext.Provider>

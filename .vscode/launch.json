@@ -6,8 +6,8 @@
   "configurations": [
     {
       "type": "chrome",
-      "request": "attach",
-      "port": 9222,
+      "request": "launch",
+      "port": 3001,
       "name": "[Chrome] performance-review",
       "url": "http://localhost:3000",
       "webRoot": "${workspaceFolder}"
